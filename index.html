@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LIFE MAKER - SYSTEM ENTRY</title>
+    <!-- 폰트 로드 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --neon-blue: #00f3ff;
+            --neon-pink: #ff00cc;
+            --neon-purple: #bc13fe;
+            --font-main: 'Noto Sans KR', sans-serif;
+            --font-tech: 'Orbitron', sans-serif;
+            --font-data: 'Rajdhani', sans-serif;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            margin: 0;
+            padding: 0;
+            color: #fff;
+            font-family: var(--font-main);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            background-color: #000; /* 이미지가 없을 때를 대비한 검은 배경 */
+        }
+
+        /* === [1] 배경 움짤 설정 === */
+        .bg-wrapper {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -10;
+            overflow: hidden;
+        }
+
+        .bg-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* 화면 꽉 차게 */
+            
+            /* ★ 여기가 핵심! 흐림 효과와 어둡기 조절 ★ */
+            filter: blur(6px) brightness(0.4); 
+            
+            transform: scale(1.1); /* 흐림 효과 때문에 테두리가 하얗게 되는걸 방지하기 위해 살짝 확대 */
+        }
+
+        /* 스캔라인 (TV 지지직 효과) */
+        .scanlines {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.3));
+            background-size: 100% 4px; pointer-events: none; z-index: -5; opacity: 0.7;
+        }
+
+        /* === 메인 중앙 타이틀 === */
+        .main-container {
+            text-align: center;
+            z-index: 5;
+            position: relative;
+        }
+
+        .system-status {
+            font-family: var(--font-data);
+            color: var(--neon-blue);
+            letter-spacing: 4px;
+            font-size: 1rem;
+            margin-bottom: 20px;
+            animation: blink 2s infinite;
+            text-shadow: 0 0 10px var(--neon-blue);
+        }
+
+        .main-title {
+            font-family: var(--font-tech);
+            font-size: 5rem;
+            font-weight: 900;
+            letter-spacing: 10px;
+            margin: 0;
+            position: relative;
+            color: #fff;
+            text-shadow: 0 0 30px rgba(188, 19, 254, 0.8); /* 보라색 네온 */
+        }
+
+        /* 글리치 효과 애니메이션 */
+        .main-title::before, .main-title::after {
+            content: "LIFE MAKER";
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: transparent; opacity: 0.8;
+        }
+        .main-title::before {
+            color: var(--neon-pink);
+            animation: glitch-anim-1 2s infinite linear alternate-reverse;
+            clip-path: polygon(0 0, 100% 0, 100% 45%, 0 45%);
+            transform: translate(-3px, 0);
+            z-index: -1;
+        }
+        .main-title::after {
+            color: var(--neon-blue);
+            animation: glitch-anim-2 3s infinite linear alternate-reverse;
+            clip-path: polygon(0 55%, 100% 55%, 100% 100%, 0 100%);
+            transform: translate(3px, 0);
+            z-index: -1;
+        }
+
+        .sub-text {
+            font-family: var(--font-data);
+            color: #ccc;
+            margin-top: 25px;
+            letter-spacing: 2px;
+            border-top: 1px solid rgba(255,255,255,0.3);
+            padding-top: 20px;
+            display: inline-block;
+            text-shadow: 0 0 5px black;
+        }
+
+        /* === 햄버거 버튼 === */
+        .menu-btn {
+            position: fixed; top: 40px; right: 40px; z-index: 1000;
+            background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2);
+            padding: 15px; cursor: pointer; transition: 0.3s; backdrop-filter: blur(5px);
+        }
+        .menu-btn:hover { border-color: var(--neon-blue); box-shadow: 0 0 15px rgba(0, 243, 255, 0.3); }
+        
+        .menu-lines, .menu-lines::before, .menu-lines::after {
+            display: block; width: 30px; height: 3px; background-color: white;
+            position: relative; transition: 0.3s;
+        }
+        .menu-lines::before { content: ''; position: absolute; top: -10px; }
+        .menu-lines::after { content: ''; position: absolute; top: 10px; }
+
+        .menu-btn.open .menu-lines { background: transparent; }
+        .menu-btn.open .menu-lines::before { top: 0; transform: rotate(45deg); background: var(--neon-pink); }
+        .menu-btn.open .menu-lines::after { top: 0; transform: rotate(-45deg); background: var(--neon-pink); }
+
+        /* === 슬라이드 메뉴 패널 === */
+        .nav-overlay {
+            position: fixed; top: 0; right: -100%; width: 400px; height: 100%;
+            background: rgba(10, 10, 10, 0.95);
+            border-left: 2px solid var(--neon-blue);
+            z-index: 999; transition: 0.5s cubic-bezier(0.77, 0, 0.175, 1);
+            display: flex; flex-direction: column; justify-content: center; padding: 50px;
+            box-shadow: -10px 0 50px rgba(0,0,0,0.8);
+        }
+        .nav-overlay.active { right: 0; }
+
+        .nav-bg-text {
+            position: absolute; bottom: 20px; right: 20px;
+            font-family: var(--font-tech); font-size: 5rem; opacity: 0.05;
+            pointer-events: none; writing-mode: vertical-rl;
+        }
+
+        .nav-links { display: flex; flex-direction: column; gap: 30px; }
+
+        .nav-item {
+            text-decoration: none; color: #fff; font-family: var(--font-tech);
+            font-size: 2rem; position: relative; padding-left: 20px; transition: 0.3s;
+            text-transform: uppercase; border-left: 3px solid transparent;
+        }
+        .nav-item:hover {
+            color: var(--neon-blue); border-left: 3px solid var(--neon-pink);
+            padding-left: 40px; text-shadow: 0 0 10px var(--neon-blue);
+        }
+
+        .nav-desc {
+            font-family: var(--font-data); font-size: 0.9rem; color: #666;
+            margin-top: 5px; display: block; letter-spacing: 2px;
+        }
+
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        @keyframes glitch-anim-1 { 0% { clip-path: inset(20% 0 80% 0); } 20% { clip-path: inset(60% 0 10% 0); } 40% { clip-path: inset(40% 0 50% 0); } 60% { clip-path: inset(80% 0 5% 0); } 80% { clip-path: inset(10% 0 70% 0); } 100% { clip-path: inset(30% 0 20% 0); } }
+        @keyframes glitch-anim-2 { 0% { clip-path: inset(10% 0 60% 0); } 20% { clip-path: inset(30% 0 10% 0); } 40% { clip-path: inset(80% 0 5% 0); } 60% { clip-path: inset(15% 0 40% 0); } 80% { clip-path: inset(55% 0 10% 0); } 100% { clip-path: inset(40% 0 80% 0); } }
+
+        @media (max-width: 768px) {
+            .nav-overlay { width: 100%; border-left: none; }
+            .main-title { font-size: 3rem; letter-spacing: 5px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- [배경] 움짤 넣는 곳 -->
+    <div class="bg-wrapper">
+        <!-- 
+           ★ 중요: 가지고 계신 움짤 파일 이름을 'background.gif'로 저장해서 같은 폴더에 넣어주세요! 
+        -->
+        <img src="background.gif" class="bg-image" alt="Cyberpunk City Background">
+    </div>
+
+    <!-- 스캔라인 효과 (움짤 위에 덮어씌움) -->
+    <div class="scanlines"></div>
+
+    <!-- 우측 상단 햄버거 메뉴 -->
+    <button class="menu-btn" onclick="toggleMenu()">
+        <span class="menu-lines"></span>
+    </button>
+
+    <!-- 슬라이드 메뉴 패널 -->
+    <div class="nav-overlay" id="navOverlay">
+        <div class="nav-bg-text">SYSTEM</div>
+        
+        <div class="nav-links">
+            <!-- 1. 세계관 -->
+            <a href="worldview.html" class="nav-item">
+                Worldview
+                <span class="nav-desc">// ARCHIVE ACCESS</span>
+            </a>
+            
+            <!-- 2. 캐릭터 -->
+            <a href="character.html" class="nav-item">
+                Characters
+                <span class="nav-desc">// UNIT ROSTER</span>
+            </a>
+
+            <!-- 3. 플레이 가이드 (이름 변경 완료!) -->
+            <a href="#" class="nav-item" onclick="alert('ACCESS DENIED: 데이터 준비중')">
+                PLAYGUIDE
+                <span class="nav-desc">// OPERATION MANUAL</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- 메인 중앙 컨텐츠 -->
+    <div class="main-container">
+        <div class="system-status">● SYSTEM_READY_TO_CONNECT</div>
+        <h1 class="main-title">LIFE MAKER</h1>
+        <div class="sub-text">
+            POST-MORTEM DIVISION ARCHIVE<br>
+            PLEASE SELECT MENU TO PROCEED
+        </div>
+    </div>
+
+    <script>
+        function toggleMenu() {
+            const nav = document.getElementById('navOverlay');
+            const btn = document.querySelector('.menu-btn');
+            
+            nav.classList.toggle('active'); 
+            btn.classList.toggle('open');   
+        }
+    </script>
+</body>
+</html>
