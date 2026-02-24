@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LIFE MAKER - UNIT DATABASE</title>
+    <!-- 폰트 로드 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700;900&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* === GLOBAL SETTINGS === */
+        :root {
+            --neon-blue: #00f3ff;
+            --neon-pink: #ff00cc;
+            --neon-purple: #bc13fe;
+            --neon-gold: #ffd700;
+            --neon-green: #00ff9d;
+            --bg-dark: #050505;
+            --bg-panel: rgba(15, 15, 15, 0.95);
+            --font-main: 'Noto Sans KR', sans-serif;
+            --font-tech: 'Orbitron', sans-serif;
+            --font-data: 'Rajdhani', sans-serif;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-dark);
+            color: #e0e0e0;
+            font-family: var(--font-main);
+            overflow-x: hidden;
+            line-height: 1.5;
+        }
+
+        /* 스크롤바 */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0a0a0a; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
+
+        /* === BACKGROUND EFFECTS === */
+        .scanlines {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2));
+            background-size: 100% 4px; pointer-events: none; z-index: 999; opacity: 0.6;
+        }
+        .ambient-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 30%, #1a1a2e 0%, #000 70%);
+            z-index: -1;
+        }
+
+        /* === MENU BUTTON === */
+        .tech-menu-btn {
+            position: fixed; top: 30px; right: 30px; width: 60px; height: 45px;
+            background: rgba(0, 0, 0, 0.6); border: 1px solid rgba(255, 255, 255, 0.4);
+            cursor: pointer; z-index: 8000;
+            display: flex; flex-direction: column; justify-content: center; gap: 6px; padding: 5px;
+            backdrop-filter: blur(5px); transition: 0.3s ease;
+        }
+        .tech-line {
+            height: 3px; background: #fff; box-shadow: 0 0 5px rgba(255,255,255,0.5); transition: 0.3s;
+        }
+        .tech-line:nth-child(1) { width: 70%; align-self: flex-end; margin-right: 4px; }
+        .tech-line:nth-child(2) { width: 60%; align-self: flex-start; margin-left: 4px; background: var(--neon-blue); }
+        .tech-line:nth-child(3) { width: 70%; align-self: flex-end; margin-right: 4px; }
+
+        .tech-menu-btn:hover { border-color: var(--neon-pink); box-shadow: 0 0 15px var(--neon-pink); }
+        .tech-menu-btn:hover .tech-line { width: 90% !important; background: var(--neon-pink); align-self: center; margin: 0; }
+
+        /* === SIDE NAV === */
+        .side-nav {
+            position: fixed; top: 0; right: -100%; width: 350px; height: 100%;
+            background: rgba(10, 10, 10, 0.98); border-left: 2px solid var(--neon-blue);
+            z-index: 7999; transition: 0.5s cubic-bezier(0.77, 0, 0.175, 1);
+            display: flex; flex-direction: column; justify-content: center; padding: 50px;
+            box-shadow: -10px 0 50px rgba(0,0,0,0.8);
+        }
+        .side-nav.active { right: 0; }
+
+        .nav-link {
+            text-decoration: none; color: #fff; font-family: var(--font-tech); font-size: 2rem;
+            margin: 20px 0; position: relative; transition: 0.3s; text-transform: uppercase;
+        }
+        .nav-link:hover { color: var(--neon-blue); text-shadow: 0 0 10px var(--neon-blue); padding-left: 15px; }
+        .nav-link::before { content: '>'; position: absolute; left: -20px; opacity: 0; transition: 0.3s; color: var(--neon-pink); }
+        .nav-link:hover::before { opacity: 1; left: 0; }
+        .nav-small { font-family: var(--font-data); font-size: 0.9rem; color: #666; display: block; margin-top: 5px; letter-spacing: 2px; }
+
+        /* === HEADER === */
+        .page-header {
+            padding: 120px 20px 60px; text-align: center; position: relative;
+        }
+        .page-title {
+            font-family: var(--font-tech); font-size: 3.5rem; font-weight: 900; color: #fff;
+            letter-spacing: 5px; text-shadow: 0 0 20px rgba(255,255,255,0.2);
+            animation: glitch 3s infinite alternate;
+        }
+        .page-subtitle {
+            font-family: var(--font-data); color: var(--neon-blue); letter-spacing: 3px;
+            margin-top: 10px; font-size: 1.2rem;
+        }
+
+        /* === UNIT SECTIONS === */
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; position: relative; z-index: 10; }
+        .unit-section { margin-bottom: 100px; }
+        
+        .unit-header {
+            display: flex; justify-content: space-between; align-items: flex-end;
+            border-bottom: 2px solid var(--team-color); padding-bottom: 15px; margin-bottom: 30px;
+        }
+        .unit-name {
+            font-family: var(--font-tech); font-size: 2.5rem; font-weight: 900;
+            color: var(--team-color); text-shadow: 0 0 10px var(--team-glow);
+        }
+        .unit-name-kr {
+            font-size: 1.2rem; font-weight: bold; color: #888; font-family: var(--font-main); margin-left: 10px;
+        }
+        .unit-code {
+            font-family: var(--font-data); color: var(--team-color); font-size: 1.2rem; letter-spacing: 2px;
+            background: rgba(0,0,0,0.5); padding: 5px 10px; border: 1px solid var(--team-color);
+        }
+
+        /* === CHARACTER GRID === */
+        .char-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 25px;
+        }
+
+        /* === CHARACTER CARD (링크 스타일 적용) === */
+        /* article 태그 대신 a 태그를 쓰므로 기본 링크 스타일 제거 */
+        .char-card {
+            background: #0f1115; border: 1px solid #333; position: relative;
+            overflow: hidden; transition: all 0.3s ease; height: 420px;
+            display: flex; flex-direction: column;
+            text-decoration: none; /* 밑줄 제거 */
+            color: inherit; /* 글자색 상속 */
+        }
+        .char-card:hover {
+            border-color: var(--team-color);
+            box-shadow: 0 0 20px var(--team-glow);
+            transform: translateY(-5px);
+            cursor: pointer; /* 클릭 가능한 커서 */
+        }
+
+        /* MUGSHOT IMAGE AREA */
+        .img-box {
+            width: 100%; height: 300px; position: relative; overflow: hidden;
+            border-bottom: 1px solid #333; background: #000;
+        }
+        .char-img {
+            width: 100%; height: 100%; object-fit: cover; object-position: top center;
+            filter: grayscale(100%) contrast(1.1) brightness(0.8); transition: 0.5s;
+        }
+        .char-card:hover .char-img {
+            filter: grayscale(0) contrast(1.0) brightness(1.0); transform: scale(1.05);
+        }
+
+        /* OVERLAY UI (REC, FRAME) */
+        .overlay-ui {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; opacity: 0.7;
+        }
+        .rec-dot {
+            position: absolute; top: 15px; left: 15px; width: 8px; height: 8px;
+            background: #f00; border-radius: 50%; animation: blink 1s infinite;
+        }
+        .rec-text {
+            position: absolute; top: 12px; left: 28px; font-family: var(--font-data);
+            font-size: 0.7rem; color: #f00; letter-spacing: 1px; font-weight: bold;
+        }
+        .face-frame {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9);
+            width: 60%; height: 60%; border: 1px dashed rgba(255,255,255,0.3);
+            opacity: 0; transition: 0.3s;
+        }
+        .char-card:hover .face-frame { opacity: 1; border-color: var(--team-color); }
+
+        /* INFO AREA */
+        .info-box {
+            padding: 20px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between;
+            background: linear-gradient(180deg, #121212 0%, #080808 100%);
+        }
+        .char-name {
+            font-family: var(--font-main); font-size: 1.3rem; font-weight: 800; color: #fff;
+            margin-bottom: 5px; line-height: 1.2;
+        }
+        .char-eng {
+            font-family: var(--font-tech); font-size: 0.8rem; color: #666; letter-spacing: 1px;
+            text-transform: uppercase; margin-bottom: 10px; display: block;
+        }
+        
+        /* BADGES */
+        .badge-row { display: flex; gap: 8px; margin-top: auto; }
+        .badge {
+            font-size: 0.7rem; padding: 4px 8px; font-family: var(--font-data); font-weight: 700;
+            border: 1px solid var(--team-color); color: var(--team-color);
+            background: rgba(0,0,0,0.3); text-transform: uppercase;
+        }
+        .badge.rank {
+            background: var(--team-color); color: #000;
+        }
+
+        /* === ANIMATIONS === */
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        @keyframes glitch { 
+            0% { text-shadow: 2px 2px var(--neon-pink), -2px -2px var(--neon-blue); }
+            100% { text-shadow: 2px 2px var(--neon-blue), -2px -2px var(--neon-pink); }
+        }
+
+        /* === MEDIA QUERIES === */
+        @media (max-width: 768px) {
+            .page-title { font-size: 2.2rem; }
+            .side-nav { width: 100%; border-left: none; }
+            .unit-header { flex-direction: column; align-items: flex-start; }
+            .unit-code { margin-top: 10px; }
+            .char-card { height: 380px; }
+            .img-box { height: 240px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 배경 스캔라인 & 앰비언트 -->
+    <div class="ambient-bg"></div>
+    <div class="scanlines"></div>
+
+    <!-- 메뉴 버튼 -->
+    <button class="tech-menu-btn" onclick="toggleNav()">
+        <div class="tech-line"></div>
+        <div class="tech-line"></div>
+        <div class="tech-line"></div>
+    </button>
+
+    <!-- 사이드 메뉴 패널 -->
+    <div class="side-nav" id="sideNav">
+        <!-- 1. HOME -->
+        <a href="index.html" class="nav-link">
+            HOME
+            <span class="nav-small">// SYSTEM ENTRY</span>
+        </a>
+
+        <!-- 2. PLAYGUIDE -->
+        <a href="playguide.html" class="nav-link">
+            PLAYGUIDE
+            <span class="nav-small">// OPERATION MANUAL</span>
+        </a>
+        
+        <!-- 현재 페이지 표시 (비활성화 상태) -->
+        <div style="margin-top:40px; padding-top:20px; border-top:1px solid #333;">
+            <span style="font-family:var(--font-data); color:var(--neon-pink);">● CURRENT: CHARACTER_ROSTER</span>
+        </div>
+    </div>
+
+    <!-- 타이틀 영역 -->
+    <header class="page-header">
+        <h1 class="page-title">PERSONNEL DATABASE</h1>
+        <div class="page-subtitle">>> ACCESSING CLASSIFIED UNIT ROSTER...</div>
+    </header>
+
+    <div class="container">
+
+        <!-- 1. 월하대 (PURPLE THEME) -->
+        <section class="unit-section" style="--team-color: #9d4edd; --team-glow: rgba(157,78,221,0.5);">
+            <div class="unit-header">
+                <div>
+                    <span class="unit-name">WOLHA</span>
+                    <span class="unit-name-kr">월하대 (月下隊)</span>
+                </div>
+                <div class="unit-code">UNIT_CODE: 7048</div>
+            </div>
+
+            <div class="char-grid">
+                
+                <!-- [링크 연결] 아니마.html -->
+                <a href="아니마.html" class="char-card">
+                    <div class="img-box">
+                        <img src="https://i.ibb.co/LMSnhQh/IMG-7055.jpg" alt="Anima" class="char-img">
+                        <div class="overlay-ui">
+                            <div class="rec-dot"></div><div class="rec-text">REC</div>
+                            <div class="face-frame"></div>
+                        </div>
+                    </div>
+                    <div class="info-box">
+                        <div>
+                            <div class="char-name">Anima (아니마)</div>
+                            <span class="char-eng">LEADER</span>
+                        </div>
+                        <div class="badge-row">
+                            <span class="badge rank">만월</span>
+                            <span class="badge">단장</span>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- [링크 연결] 시로.html -->
+                <a href="시로.html" class="char-card">
+                    <div class="img-box">
+                        <img src="https://i.ibb.co/XxsC6w03/IMG-7093.jpg" alt="Shiro" class="char-img">
+                        <div class="overlay-ui">
+                            <div class="rec-dot"></div><div class="rec-text">REC</div>
+                            <div class="face-frame"></div>
+                        </div>
+                    </div>
+                    <div class="info-box">
+                        <div>
+                            <div class="char-name">시로 (白)</div>
+                            <span class="char-eng">OPERATIVE</span>
+                        </div>
+                        <div class="badge-row">
+                            <span class="badge rank">반월</span>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- [링크 연결] 오팔.html -->
+                <a href="오팔.html" class="char-card">
+                    <div class="img-box">
+                        <img src="https://i.ibb.co/zTKwL8Sx/IMG-7198.jpg" alt="Opal" class="char-img">
+                        <div class="overlay-ui">
+                            <div class="rec-dot"></div><div class="rec-text">REC</div>
+                            <div class="face-frame"></div>
+                        </div>
+                    </div>
+                    <div class="info-box">
+                        <div>
+                            <div class="char-name">Opal (오팔)</div>
+                            <span class="char-eng">OPERATIVE</span>
+                        </div>
+                        <div class="badge-row">
+                            <span class="badge rank">반월</span>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- [링크 연결] 와이퍼.html -->
+                <a href="와이퍼.html" class="char-card">
+                    <div class="img-box">
+                        <img src="https://i.ibb.co/vvvJNHj9/IMG-7202.jpg" alt="Wiper" class="char-img">
+                        <div class="overlay-ui">
+                            <div class="rec-dot"></div><div class="rec-text">REC</div>
+                            <div class="face-frame"></div>
+                        </div>
+                    </div>
+                    <div class="info-box">
+                        <div>
+                            <div class="char-name">Wiper (와이퍼)</div>
+                            <span class="char-eng">ELITE</span>
+                        </div>
+                        <div class="badge-row">
+                            <span class="badge rank">만월</span>
+                            <span class="badge">특수</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </section>
+
+        <!-- 2. 잔월대 (SILVER/GREY THEME) -->
+        <section class="unit-section" style="--team-color: #bbbbbb; --team-glow: rgba(200,200,200,0.5);">
+            <div class="unit-header">
+                <div>
+                    <span class="unit-name">JANWOL</span>
+                    <span class="unit-name-kr">잔월대 (殘月隊)</span>
+                </div>
+                <div class="unit-code">UNIT_CODE: 7112</div>
+            </div>
+
+            <div class="char-grid">
+                
+                <!-- [링크 연결] 도체레.html -->
+                <a href="도체레.html" class="char-card">
+                    <div class="img-box">
+                        <img src="https://i.ibb.co/27JV210L/IMG-7094.jpg" alt="Docere" class="char-img">
+                        <div class="overlay-ui">
+                            <div class="rec-dot"></div><div class="rec-text">REC</div>
+                            <div class="face-frame"></div>
+                        </div>
+                    </div>
+                    <div class="info-box">
+                        <div>
+                            <div class="char-name">Docēre (도체레)</div>
+                            <span class="char-eng">LEADER</span>
+                        </div>
+                        <div class="badge-row">
+                            <span class="badge rank" style="background:#ff00cc; color:#fff;">극성</span>
+                            <span class="badge">단장</span>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- [링크 연결] 하진.html -->
+                <a href="하진.html" class="char-card">
+                    <div class="img-box">
+                        <img src="https://i.ibb.co/svFHh2PZ/IMG-7092.jpg" alt="Hajin" class="char-img">
+                        <div class="overlay-ui">
+                            <div class="rec-dot"></div><div class="rec-text">REC</div>
+                            <div class="face-frame"></div>
+                        </div>
+                    </div>
+                    <div class="info-box">
+                        <div>
+                            <div class="char-name">하진 (河眞)</div>
+                            <span class="char-eng">ROOKIE</span>
+                        </div>
+                        <div class="badge-row">
+                            <span class="badge rank">초승</span>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- [링크 연결] 로리넥스.html -->
+                <a href="로리넥스.html" class="char-card">
+                    <div class="img-box">
+                        <img src="https://i.ibb.co/zWjsDq9P/IMG-7139.jpg" alt="Lorinex" class="char-img">
+                        <div class="overlay-ui">
+                            <div class="rec-dot"></div><div class="rec-text">REC</div>
+                            <div class="face-frame"></div>
+                        </div>
+                    </div>
+                    <div class="info-box">
+                        <div>
+                            <div class="char-name">Lorinex (로리넥스)</div>
+                            <span class="char-eng">ROOKIE</span>
+                        </div>
+                        <div class="badge-row">
+                            <span class="badge rank">초승</span>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- [링크 연결] 스페씨.html -->
+                <a href="스페씨.html" class="char-card">
+                    <div class="img-box">
+                        <img src="https://i.ibb.co/DDLqRzrT/IMG-7201.jpg" alt="Spe.c" class="char-img">
+                        <div class="overlay-ui">
+                            <div class="rec-dot"></div><div class="rec-text">REC</div>
+                            <div class="face-frame"></div>
+                        </div>
+                    </div>
+                    <div class="info-box">
+                        <div>
+                            <div class="char-name">Spe. c (스페씨)</div>
+                            <span class="char-eng">OPERATIVE</span>
+                        </div>
+                        <div class="badge-row">
+                            <span class="badge rank">반월</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </section>
+
+        <!-- 3. 묵야단 (GREEN THEME) -->
+        <section class="unit-section" style="--team-color: #78c39a; --team-glow: rgba(120,195,154,0.5);">
+            <div class="unit-header">
+                <div>
+                    <span class="unit-name">MUKYA</span>
+                    <span class="unit-name-kr">묵야단 (黙夜團)</span>
+                </div>
+                <div class="unit-code">UNIT_CODE: 7113</div>
+            </div>
+
+            <div class="char-grid">
+                
+                <!-- [링크 연결] 설도진.html -->
+                <a href="설도진.html" class="char-card">
+                    <div class="img-box">
+                        <img src="https://i.ibb.co/PZC7CfrV/IMG-7090.jpg" alt="Seol" class="char-img">
+                        <div class="overlay-ui">
+                            <div class="rec-dot"></div><div class="rec-text">REC</div>
+                            <div class="face-frame"></div>
+                        </div>
+                    </div>
+                    <div class="info-box">
+                        <div>
+                            <div class="char-name">설도진 (薛刀眞)</div>
+                            <span class="char-eng">LEADER</span>
+                        </div>
+                        <div class="badge-row">
+                            <span class="badge rank">만월</span>
+                            <span class="badge">단장</span>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- [링크 연결] 큐리.html -->
+                <a href="큐리.html" class="char-card">
+                    <div class="img-box">
+                        <img src="https://i.ibb.co/Mkh61m7x/IMG-7136.jpg" alt="Curi" class="char-img">
+                        <div class="overlay-ui">
+                            <div class="rec-dot"></div><div class="rec-text">REC</div>
+                            <div class="face-frame"></div>
+                        </div>
+                    </div>
+                    <div class="info-box">
+                        <div>
+                            <div class="char-name">Curi (큐리)</div>
+                            <span class="char-eng">OPERATIVE</span>
+                        </div>
+                        <div class="badge-row">
+                            <span class="badge rank">반월</span>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- [링크 연결] 라이코스.html -->
+                <a href="라이코스.html" class="char-card">
+                    <div class="img-box">
+                        <img src="https://i.ibb.co/5gkbKj5G/IMG-7203.jpg" alt="Lycos" class="char-img">
+                        <div class="overlay-ui">
+                            <div class="rec-dot"></div><div class="rec-text">REC</div>
+                            <div class="face-frame"></div>
+                        </div>
+                    </div>
+                    <div class="info-box">
+                        <div>
+                            <div class="char-name">Lycos (라이코스)</div>
+                            <span class="char-eng">ROOKIE</span>
+                        </div>
+                        <div class="badge-row">
+                            <span class="badge rank">초승</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </section>
+
+        <!-- 4. 백월여단 (GOLD THEME) -->
+        <section class="unit-section" style="--team-color: #f0e6bc; --team-glow: rgba(240,230,188,0.5);">
+            <div class="unit-header">
+                <div>
+                    <span class="unit-name">BAEKWOL</span>
+                    <span class="unit-name-kr">백월여단 (白月旅團)</span>
+                </div>
+                <div class="unit-code">UNIT_CODE: 7114</div>
+            </div>
+
+            <div class="char-grid">
+                
+                <!-- [링크 연결] 몬스타.html -->
+                <a href="몬스타.html" class="char-card">
+                    <div class="img-box">
+                        <img src="https://i.ibb.co/Cs3Bb3wS/IMG-7091.jpg" alt="Mournesta" class="char-img">
+                        <div class="overlay-ui">
+                            <div class="rec-dot"></div><div class="rec-text">REC</div>
+                            <div class="face-frame"></div>
+                        </div>
+                    </div>
+                    <div class="info-box">
+                        <div>
+                            <div class="char-name">Mournesta (몬스타)</div>
+                            <span class="char-eng">LEADER</span>
+                        </div>
+                        <div class="badge-row">
+                            <span class="badge rank" style="background:#ff00cc; color:#fff;">극성</span>
+                            <span class="badge">단장</span>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- [링크 연결] 베렌.html -->
+                <a href="베렌.html" class="char-card">
+                    <div class="img-box">
+                        <img src="https://i.ibb.co/DfFtdg2J/IMG-7137.jpg" alt="Valen" class="char-img">
+                        <div class="overlay-ui">
+                            <div class="rec-dot"></div><div class="rec-text">REC</div>
+                            <div class="face-frame"></div>
+                        </div>
+                    </div>
+                    <div class="info-box">
+                        <div>
+                            <div class="char-name">Valen (베렌)</div>
+                            <span class="char-eng">ROOKIE</span>
+                        </div>
+                        <div class="badge-row">
+                            <span class="badge rank">초승</span>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- [링크 연결] 베스페리스.html -->
+                <a href="베스페리스.html" class="char-card">
+                    <div class="img-box">
+                        <img src="https://i.ibb.co/C3N8Dgnn/IMG-7138.jpg" alt="Vesperis" class="char-img">
+                        <div class="overlay-ui">
+                            <div class="rec-dot"></div><div class="rec-text">REC</div>
+                            <div class="face-frame"></div>
+                        </div>
+                    </div>
+                    <div class="info-box">
+                        <div>
+                            <div class="char-name">Vesperis (베스페리스)</div>
+                            <span class="char-eng">OPERATIVE</span>
+                        </div>
+                        <div class="badge-row">
+                            <span class="badge rank">반월</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <div style="text-align:center; padding:50px 0; font-size:0.8rem; color:#555; font-family:var(--font-data); border-top:1px dashed #333; letter-spacing:3px;">
+            PERSONNEL DATABASE // END OF FILE
+        </div>
+
+    </div>
+
+    <script>
+        function toggleNav() {
+            const nav = document.getElementById('sideNav');
+            nav.classList.toggle('active');
+        }
+    </script>
+</body>
+</html>
