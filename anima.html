@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LIFE MAKER - ARCHIVE ACCESS</title>
+    <!-- 폰트 로드 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700;900&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* === GLOBAL SETTINGS === */
+        :root { --neon-blue: #00f3ff; --neon-pink: #ff00cc; --neon-purple: #bc13fe; --neon-gold: #ffd700; --bg-dark: #050505; --bg-panel: rgba(20, 20, 25, 0.95); --font-main: 'Noto Sans KR', sans-serif; --font-tech: 'Orbitron', sans-serif; --font-data: 'Rajdhani', sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background-color: var(--bg-dark); color: #e0e0e0; font-family: var(--font-main); overflow-x: hidden; line-height: 1.6; }
+        ::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-track { background: #0a0a0a; } ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        .scanlines { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2)); background-size: 100% 4px; pointer-events: none; z-index: 999; opacity: 0.6; }
+        .ambient-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 50% 20%, #1a0b2e 0%, #000 80%); z-index: -1; }
+        .tech-menu-btn { position: fixed; top: 30px; right: 30px; width: 60px; height: 45px; background: rgba(0, 0, 0, 0.6); border: 1px solid rgba(255, 255, 255, 0.4); cursor: pointer; z-index: 8000; display: flex; flex-direction: column; justify-content: center; gap: 6px; padding: 5px; backdrop-filter: blur(5px); transition: 0.3s; }
+        .tech-menu-btn:hover { border-color: var(--neon-pink); }
+        .tech-line { height: 3px; background: #fff; transition: 0.3s; }
+        .tech-line:nth-child(2) { width: 60%; background: var(--neon-blue); }
+        .tech-menu-btn:hover .tech-line { width: 100%; background: var(--neon-pink); }
+        .side-nav { position: fixed; top: 0; right: -100%; width: 350px; height: 100%; background: rgba(10, 10, 10, 0.98); border-left: 2px solid var(--neon-blue); z-index: 7999; transition: 0.5s cubic-bezier(0.77, 0, 0.175, 1); display: flex; flex-direction: column; padding: 50px; justify-content: center; box-shadow: -10px 0 50px rgba(0,0,0,0.8); }
+        .side-nav.active { right: 0; }
+        .nav-link { text-decoration: none; color: #fff; font-family: var(--font-tech); font-size: 2rem; margin: 20px 0; display: block; transition: 0.3s; }
+        .nav-link:hover { color: var(--neon-blue); padding-left: 10px; }
+        .nav-small { font-family: var(--font-data); font-size: 0.9rem; color: #666; display: block; letter-spacing: 2px; }
+        .container { max-width: 800px; margin: 0 auto; padding: 120px 20px 60px; position: relative; z-index: 10; }
+        .char-header { position: relative; border: 1px solid #333; margin-bottom: 30px; background: #000; }
+        .char-img-container { position: relative; width: 100%; padding-top: 140%; overflow: hidden; }
+        .char-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; filter: grayscale(20%) contrast(1.1); }
+        .header-overlay { position: absolute; bottom: 0; left: 0; width: 100%; height: 50%; background: linear-gradient(to top, #050505 10%, transparent); pointer-events: none; }
+        .overlay-ui-top { position: absolute; top: 20px; left: 20px; right: 20px; display: flex; justify-content: space-between; }
+        .rec-tag { color: #f00; font-family: var(--font-data); font-weight: bold; animation: blink 1s infinite; }
+        .wanted-tag { border: 1px solid var(--neon-pink); color: var(--neon-pink); padding: 2px 8px; font-family: var(--font-tech); font-size: 0.8rem; box-shadow: 0 0 10px rgba(255,0,204,0.3); }
+        .char-title-box { position: absolute; bottom: 30px; width: 100%; text-align: center; }
+        .char-name-lg { font-family: var(--font-tech); font-size: 4rem; font-weight: 900; color: #fff; text-shadow: 3px 3px var(--neon-pink), -3px -3px var(--neon-blue); line-height: 1; letter-spacing: 2px; text-transform: uppercase; }
+        .char-sub { font-family: var(--font-data); color: var(--neon-purple); letter-spacing: 4px; font-weight: bold; }
+        
+        /* CONTROLS (수정된 부분) */
+        .control-panel { display: flex; gap: 10px; margin-bottom: 40px; flex-wrap: wrap; }
+        .ctrl-btn { flex: 1; border: 1px solid #333; background: rgba(255,255,255,0.05); padding: 15px; color: #fff; font-family: var(--font-tech); cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px; text-decoration: none; }
+        .ctrl-btn:hover { background: rgba(255,255,255,0.1); border-color: #fff; }
+        
+        /* PLAY SIMULATION 버튼 효과 */
+        #play-game-btn { border-color: var(--neon-blue); color: var(--neon-blue); box-shadow: 0 0 10px rgba(0,243,255,0.1); }
+        #play-game-btn:hover { background: var(--neon-blue); color: #000; box-shadow: 0 0 20px var(--neon-blue); }
+        
+        /* PLAY VOICE LOG 버튼 효과 (추가됨!) */
+        #music-btn { border-color: var(--neon-pink); color: var(--neon-pink); }
+        /* 마우스 올렸을 때 빛나는 효과 추가 */
+        #music-btn:hover { background: var(--neon-pink); color: #000; box-shadow: 0 0 20px var(--neon-pink); }
+        /* 재생 중일 때도 빛나게 유지 */
+        #music-btn.playing { background: var(--neon-pink); color: #000; box-shadow: 0 0 20px var(--neon-pink); }
+
+        .data-panel { background: var(--bg-panel); border: 1px solid #333; padding: 25px; margin-bottom: 25px; position: relative; overflow: hidden; }
+        .panel-header { border-bottom: 1px dashed #444; padding-bottom: 10px; margin-bottom: 20px; font-family: var(--font-tech); font-weight: bold; letter-spacing: 2px; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; color: var(--neon-pink); }
+        .panel-header::before { content: '■'; font-size: 0.8em; }
+        .profile-flex-row { display: flex; gap: 10px; margin-bottom: 10px; }
+        .profile-box { background: #111; border: 1px solid #282828; padding: 10px; flex: 1; min-width: 100px; }
+        .profile-label { color: #888; font-size: 0.7rem; font-family: var(--font-data); display: block; margin-bottom: 4px; letter-spacing: 1px; }
+        .profile-value { color: #fff; font-size: 0.95rem; font-weight: bold; }
+        .profile-section-title { color: var(--neon-pink); font-size: 0.8rem; margin-top: 15px; margin-bottom: 5px; font-family: var(--font-data); font-weight: bold; border-top: 1px dashed #333; padding-top: 10px; }
+        .profile-desc-box { background: #0f0f0f; border: 1px solid #333; padding: 10px; color: #ccc; font-size: 0.9rem; line-height: 1.5; }
+        .combat-skill-box { background: #111; border: 1px solid #333; padding: 20px; border-left: 3px solid var(--neon-purple); }
+        .skill-title { font-size: 1.3rem; font-weight: bold; color: #fff; text-shadow: 0 0 5px rgba(188, 19, 254, 0.5); }
+        .wp-badge { background: rgba(188, 19, 254, 0.1); border: 1px solid var(--neon-purple); color: var(--neon-purple); font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; vertical-align: middle; margin-left: 10px; font-family: var(--font-tech); }
+        .observer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .obs-card { background: #151515; padding: 15px; border: 1px solid #333; }
+        .obs-title { font-weight: bold; color: #ddd; border-bottom: 2px solid #555; display: inline-block; margin-bottom: 10px; font-size: 0.9rem; }
+        .peer-box { display: flex; gap: 15px; align-items: flex-start; }
+        .peer-img { width: 100px; height: 100px; background: #333; border: 1px solid #555; background-size: cover; background-position: center; flex-shrink: 0; }
+        .quote { font-style: italic; color: #bbb; font-size: 0.9rem; line-height: 1.6; }
+        .decrypt-section { border: 1px solid var(--neon-pink); background: rgba(255, 0, 204, 0.05); padding: 25px; text-align: left; }
+        .spoiler-container { position: relative; margin-top: 10px; }
+        .spoiler-content { filter: blur(15px); opacity: 0.4; user-select: none; transition: 0.8s; cursor: pointer; }
+        .spoiler-content:hover { opacity: 0.6; }
+        .spoiler-content.unlocked { filter: blur(0); opacity: 1; user-select: auto; cursor: auto; }
+        .decrypt-overlay-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #fff; font-family: var(--font-tech); font-weight: bold; text-shadow: 0 0 5px #000; pointer-events: none; white-space: nowrap; z-index: 10; font-size: 1.2rem; }
+        .spoiler-content.unlocked + .decrypt-overlay-text { display: none; }
+        .spoiler-warning-text { color: var(--neon-pink); font-size: 0.9rem; text-align: center; margin-top: 20px; font-weight: bold; animation: blink 2s infinite; padding: 10px; border-top: 1px solid rgba(255,0,204,0.3); }
+        .tmi-grid { display: flex; flex-wrap: wrap; gap: 10px; border-bottom: 1px solid #333; padding-bottom: 20px; margin-bottom: 20px; }
+        .tmi-box { flex: 1 1 100%; margin-bottom: 10px; }
+        .tmi-label { color: var(--neon-purple); font-family: var(--font-tech); font-size: 0.8rem; font-weight: bold; }
+        .tmi-text { color: #ccc; font-size: 0.9rem; margin-top: 2px; border-left: 2px solid #333; padding-left: 8px; }
+        .creator-note-box { margin-bottom: 20px; }
+        .persona-box { background: #111; border: 1px solid #333; padding: 20px; margin-top: 15px; }
+        .persona-line { margin-bottom: 8px; font-size: 0.95rem; color: #ccc; border-bottom: 1px solid #222; padding-bottom: 4px; display: flex; justify-content: space-between; }
+        .persona-key { color: var(--neon-purple); font-weight: bold; }
+        .author-say { margin-top: 15px; font-size: 0.85rem; color: #888; font-style: italic; background: #0a0a0a; padding: 15px; border: 1px dashed #333; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        @media (max-width: 768px) { .char-name-lg { font-size: 3rem; } .observer-grid { grid-template-columns: 1fr; } .control-panel { flex-direction: column; } .side-nav { width: 100%; border-left: none; } .profile-flex-row { flex-wrap: wrap; } .peer-box { flex-direction: column; } .peer-img { width: 100%; height: 200px; } }
+    </style>
+</head>
+<body>
+
+    <!-- [오디오 파일 연결] -->
+    <!-- 파일명을 '캐릭터이름.bgm' 또는 '캐릭터이름.mp3' (영어 소문자 추천) -->
+    <audio id="char-audio">
+        <source src="anima.bgm"> 
+    </audio>
+
+    <div class="ambient-bg"></div>
+    <div class="scanlines"></div>
+
+    <button class="tech-menu-btn" onclick="toggleNav()">
+        <div class="tech-line"></div>
+        <div class="tech-line"></div>
+        <div class="tech-line"></div>
+    </button>
+    
+    <div class="side-nav" id="sideNav">
+        <a href="index.html" class="nav-link">HOME <span class="nav-small">// SYSTEM ENTRY</span></a>
+        <a href="character.html" class="nav-link">CHARACTERS <span class="nav-small">// UNIT LIST</span></a>
+        <a href="playguide.html" class="nav-link">PLAYGUIDE <span class="nav-small">// MANUAL</span></a>
+    </div>
+
+    <div class="container">
+
+        <!-- 1. HEADER -->
+        <header class="char-header">
+            <div class="char-img-container">
+                <!-- [이미지 변경] -->
+                <img src="https://i.ibb.co/LMSnhQh/IMG-7055.jpg" alt="Character" class="char-img">
+                <div class="header-overlay"></div>
+                <div class="overlay-ui-top">
+                    <div class="rec-tag">● REC [00:00:00]</div>
+                    <div class="wanted-tag">WANTED</div>
+                </div>
+                <div class="char-title-box">
+                    <h1 class="char-name-lg">ANIMA</h1> 
+                    <div class="char-sub">// VIOLET ZONE DB_NO.404</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- CONTROLS -->
+        <div class="control-panel">
+            <a href="https://caveduck.io" target="_blank" class="ctrl-btn" id="play-game-btn">
+                <span>▶ PLAY SIMULATION</span>
+            </a>
+            <button class="ctrl-btn" id="music-btn" onclick="toggleAudio()">
+                <span id="music-icon">♪</span>
+                <span id="music-text">PLAY THEME BGM</span>
+            </button>
+        </div>
+
+        <!-- 2. PROFILE -->
+        <section class="data-panel" style="border-color: var(--neon-pink);">
+            <div class="panel-header">PROFILE_DATA</div>
+            <div class="profile-flex-row">
+                <div class="profile-box">
+                    <span class="profile-label">NAME</span>
+                    <div class="profile-value">아니마 (Anima)</div>
+                </div>
+                <div class="profile-box">
+                    <span class="profile-label">AGE</span>
+                    <div class="profile-value">24세</div>
+                </div>
+            </div>
+            <div class="profile-flex-row">
+                 <div class="profile-box">
+                    <span class="profile-label">DATE OF BIRTH</span>
+                    <div class="profile-value">12월 21일</div>
+                </div>
+            </div>
+            <div class="profile-flex-row">
+                <div class="profile-box" style="border-left: 3px solid var(--neon-pink);">
+                   <span class="profile-label" style="color:var(--neon-pink)">AFFILIATION</span>
+                   <div class="profile-value">월하대 / 만월 등급 / 라이퍼</div>
+               </div>
+           </div>
+           <div class="profile-section-title">>> APPEARANCE</div>
+           <div class="profile-desc-box">
+               백발에 가까운 연보라색 머리카락. 차가운 인상이지만 눈매는 묘하게 슬퍼 보인다. 전투 시에는 검은색 전술 코트를 착용한다.
+           </div>
+           <div class="profile-section-title">>> BODY_SPEC</div>
+           <div class="profile-desc-box">
+               168cm / 마른 체형이나 근육량이 상당함.
+           </div>
+           <div class="profile-section-title">>> ATTIRE_STYLE</div>
+           <div class="profile-desc-box">
+               활동성이 강조된 제복, 목을 덮는 하이넥 셔츠, 낡은 펜던트.
+           </div>
+        </section>
+
+        <!-- 3. COMBAT -->
+        <section class="data-panel" style="border-color: var(--neon-purple);">
+            <div class="panel-header" style="color:var(--neon-purple)">COMBAT_ABILITIES</div>
+            <div class="combat-skill-box">
+                <div>
+                    <span class="skill-title">몽환의 검 (Dream Blade)</span>
+                    <span class="wp-badge">WP: Longsword</span>
+                </div>
+                <p style="margin-top:15px; color:#ccc; font-size:0.95rem;">
+                    정신 간섭계 능력을 칼날에 부여하여, 베인 대상에게 물리적 타격과 함께 환각을 심는다. 깊게 베일수록 현실과 환상의 경계가 무너져 전투 불능 상태에 빠진다.
+                </p>
+            </div>
+        </section>
+
+        <!-- 4. OBSERVER -->
+        <section class="data-panel" style="border-color: #aaa;">
+            <div class="panel-header" style="color:#e0e0e0">OBSERVER_REPORT</div>
+            <div class="observer-grid">
+                <div class="obs-card">
+                    <span class="obs-title" style="border-color:var(--neon-blue)">평가관 소견</span>
+                    <p class="quote">
+                        "감정 제어가 탁월하며 임무 수행에 있어 망설임이 없다. 그러나 가끔 허공을 응시하는 버릇이 있어 심리 상태에 대한 지속적 관찰이 요구됨."
+                    </p>
+                    <div style="text-align:right; margin-top:10px; font-family:var(--font-data); color:#666;">
+                        EVALUATOR : Dr. Kang
+                    </div>
+                </div>
+                <div class="obs-card">
+                    <span class="obs-title" style="border-color:var(--neon-purple)">동료 증언</span>
+                    <div class="peer-box">
+                        <!-- [동료 이미지 변경] -->
+                        <div class="peer-img" style="background-image: url('https://i.ibb.co/XxsC6w03/IMG-7093.jpg');"></div>
+                        <div>
+                            <p class="quote">
+                                "단장님은... 우리가 쉴 때도 칼을 놓지 않아. 무서운 게 아니라 슬픈 거지."
+                            </p>
+                            <div style="margin-top:5px; font-family:var(--font-data); color:#666; font-size:0.8rem;">
+                                ID : 시로 (White)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. DECRYPTED FILE -->
+        <section class="data-panel decrypt-section">
+            <div style="text-align:center; color:var(--neon-pink); font-family:var(--font-tech); font-weight:900; letter-spacing:2px; margin-bottom:15px;">
+                ⚠ DECRYPTED FILE ⚠
+            </div>
+            
+            <div class="spoiler-container">
+                <div class="spoiler-content" onclick="toggleSpoiler(this)">
+                    <div style="margin-bottom:15px; padding-bottom:10px; border-bottom:1px dashed var(--neon-pink);">
+                        <span style="color:var(--neon-pink); font-family:var(--font-tech); font-size:0.8rem; margin-right:10px;">ORIGINAL_NAME ::</span>
+                        <span style="color:#fff; font-weight:bold;">이수아 (Lee Sua)</span>
+                    </div>
+                    <div>
+                        <span style="color:var(--neon-pink); font-family:var(--font-tech); font-size:0.8rem; display:block; margin-bottom:5px;">HISTORY_LOG ::</span>
+                        <div style="color:#ccc; font-size:0.9rem; line-height:1.7;">
+                            지구에서의 그녀는 평범한 대학생이었으나, 교통사고로 사망 후 레드존으로 전이되었다. 초기에는 능력을 제어하지 못해 폭주했으나, 당시 구조대에 의해 진압되었다. 그 사건의 트라우마로 인해 감정을 닫게 되었다.
+                        </div>
+                    </div>
+                </div>
+                <div class="decrypt-overlay-text">🔒 LOCKED DATA</div>
+            </div>
+
+            <div class="spoiler-warning-text">
+                스포주의! 클릭 시 해당 캐릭터의 전생 정보가 나옵니다!
+            </div>
+        </section>
+
+        <!-- 6. INTRODUCTION -->
+        <section class="data-panel" style="border-color: var(--neon-blue);">
+            <div class="panel-header" style="color:var(--neon-blue)">INTRODUCTION</div>
+            <div style="background:rgba(0, 243, 255, 0.05); border:1px solid #005555; padding:20px; color:#bbb; font-size:0.95rem; line-height:1.6;">
+                폐허가 된 도시의 한가운데, 그녀가 서 있었다. 칼끝은 바닥을 향해 있었지만, 주변의 공기는 이미 날카롭게 얼어붙어 있었다. "누구냐." 낮게 깔린 목소리에는 적의보다 피로가 짙게 묻어났다. 이것이 당신과 월하대 단장, 아니마의 첫 만남이었다.
+            </div>
+        </section>
+
+        <!-- 7. PRIVATE & PERSONA -->
+        <section class="data-panel" style="border-color: var(--neon-purple);">
+            <div class="panel-header" style="color:var(--neon-purple)">PRIVATE_COMMENT</div>
+            
+            <!-- [배너 이미지 변경] -->
+            <div style="height:100px; background:url('https://i.ibb.co/LMSnhQh/IMG-7055.jpg') center/cover; opacity:0.6; margin-bottom:20px; border:1px solid #444;"></div>
+            
+            <div class="tmi-grid">
+                <div class="tmi-box">
+                    <span class="tmi-label">▶ TMI_DB</span>
+                    <div class="tmi-text">매운 음식을 전혀 못 먹는다.</div>
+                </div>
+                <div style="flex:1;">
+                    <span class="tmi-label">▶ LIKES</span>
+                    <div style="color:#ccc; font-size:0.9rem;">초콜릿, 고요한 밤, 고양이</div>
+                </div>
+                <div style="flex:1;">
+                    <span class="tmi-label">▶ DISLIKES</span>
+                    <div style="color:#ccc; font-size:0.9rem;">소란스러운 곳, 매운 것</div>
+                </div>
+            </div>
+
+            <div class="creator-note-box">
+                <span style="font-family:var(--font-tech); color:#888; font-size:0.8rem;">// CREATOR_NOTE</span>
+                <p style="font-style:italic; color:#bbb; margin-top:5px;">
+                    “겉은 차갑지만 속은 여린 외강내유형 캐릭터입니다. 플레이어와의 대화를 통해 서서히 마음을 여는 과정을 즐겨주세요.”
+                </p>
+            </div>
+
+            <div style="border-top:1px dashed #444; padding-top:20px;">
+                <span style="font-family:var(--font-tech); color:#eee; font-size:0.8rem;">// RECOMMENDED_PERSONA</span>
+                
+                <div class="persona-box">
+                    <div class="persona-line"><span class="persona-key">이름:</span> <span>자유 (Free)</span></div>
+                    <div class="persona-line"><span class="persona-key">성별:</span> <span>무관</span></div>
+                    <div class="persona-line"><span class="persona-key">나이:</span> <span>20대 초반 추천</span></div>
+                    <div class="persona-line"><span class="persona-key">소속 부대:</span> <span>신입 대원 or 외부 협력자</span></div>
+                    <div class="persona-line"><span class="persona-key">계급:</span> <span>초승 등급</span></div>
+                    <div class="persona-line" style="border-bottom:none;"><span class="persona-key">계통:</span> <span>무관</span></div>
+                </div>
+
+                <div class="author-say">
+                    ※ 작가의 말: 캐릭터의 트라우마를 자극하지 않도록 주의해주세요.
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <script>
+        function toggleNav() {
+            document.getElementById('sideNav').classList.toggle('active');
+        }
+        function toggleAudio() {
+            var audio = document.getElementById("char-audio");
+            var btn = document.getElementById("music-btn");
+            var text = document.getElementById("music-text");
+            var icon = document.getElementById("music-icon");
+            if (audio.paused) {
+                audio.play();
+                btn.classList.add("playing");
+                text.innerText = "STOP VOICE LOG";
+                icon.innerText = "■";
+            } else {
+                audio.pause();
+                btn.classList.remove("playing");
+                text.innerText = "PLAY VOICE LOG";
+                icon.innerText = "♪";
+            }
+        }
+        function toggleSpoiler(element) {
+            element.classList.toggle("unlocked");
+        }
+    </script>
+</body>
+</html>
