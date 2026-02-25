@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LIFE MAKER - ARCHIVE ACCESS [IVORY]</title>
+    <!-- 폰트 로드 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700;900&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+<style>
+    /* === GLOBAL SETTINGS (IVORY THEME) === */
+    :root { 
+        /* 색상 변경: 아이보리, 골드, 샌드 톤 */
+        --main-ivory: #FFFFF0;       /* 메인: 깨끗한 아이보리 */
+        --main-cream: #F5E6D3;       /* 서브: 크림색 */
+        --accent-gold: #D4AF37;      /* 강조: 앤티크 골드 */
+        --accent-sand: #C2B280;      /* 강조2: 차분한 모래색 */
+        
+        --bg-dark: #080807;          /* 배경: 완전 블랙보다는 아주 짙은 웜 블랙 */
+        --bg-panel: rgba(25, 24, 20, 0.95); /* 패널: 붉은기 살짝 도는 어두운 회색 */
+        
+        --font-main: 'Noto Sans KR', sans-serif; 
+        --font-tech: 'Orbitron', sans-serif; 
+        --font-data: 'Rajdhani', sans-serif; 
+    }
+    
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background-color: var(--bg-dark); color: #e0e0e0; font-family: var(--font-main); overflow-x: hidden; line-height: 1.6; }
+    ::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-track { background: #0a0a0a; } ::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+    
+    .scanlines { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1)); background-size: 100% 4px; pointer-events: none; z-index: 999; opacity: 0.5; }
+    /* 배경 그라데이션을 웜톤으로 변경 */
+    .ambient-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 50% 20%, #1a1510 0%, #000 80%); z-index: -1; }
+    
+    .tech-menu-btn { position: fixed; top: 30px; right: 30px; width: 60px; height: 45px; background: rgba(0, 0, 0, 0.6); border: 1px solid rgba(255, 255, 240, 0.4); cursor: pointer; z-index: 8000; display: flex; flex-direction: column; justify-content: center; gap: 6px; padding: 5px; backdrop-filter: blur(5px); transition: 0.3s; }
+    .tech-menu-btn:hover { border-color: var(--accent-gold); }
+    .tech-line { height: 3px; background: #fff; transition: 0.3s; }
+    .tech-line:nth-child(2) { width: 60%; background: var(--main-ivory); }
+    .tech-menu-btn:hover .tech-line { width: 100%; background: var(--accent-gold); }
+    
+    .side-nav { position: fixed; top: 0; right: -100%; width: 350px; height: 100%; background: rgba(15, 14, 12, 0.98); border-left: 2px solid var(--main-ivory); z-index: 7999; transition: 0.5s cubic-bezier(0.77, 0, 0.175, 1); display: flex; flex-direction: column; padding: 50px; justify-content: center; box-shadow: -10px 0 50px rgba(0,0,0,0.8); }
+    .side-nav.active { right: 0; }
+    .nav-link { text-decoration: none; color: #fff; font-family: var(--font-tech); font-size: 2rem; margin: 20px 0; display: block; transition: 0.3s; }
+    .nav-link:hover { color: var(--main-ivory); padding-left: 10px; text-shadow: 0 0 10px var(--main-ivory); }
+    .nav-small { font-family: var(--font-data); font-size: 0.9rem; color: #888; display: block; letter-spacing: 2px; }
+    .container { max-width: 800px; margin: 0 auto; padding: 120px 20px 60px; position: relative; z-index: 10; }
+    
+    /* HEADER STYLE */
+    .char-header { position: relative; border: 1px solid #444; margin-bottom: 30px; background: #000; }
+    .char-img-container { position: relative; width: 100%; padding-top: 140%; overflow: hidden; }
+    .char-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; filter: grayscale(10%) sepia(20%) contrast(1.1); }
+    .header-overlay { position: absolute; bottom: 0; left: 0; width: 100%; height: 50%; background: linear-gradient(to top, var(--bg-dark) 10%, transparent); pointer-events: none; }
+    
+    /* FLOATING TAGS STYLE */
+    .floating-tag {
+        position: absolute;
+        padding: 5px 12px;
+        background: rgba(10, 10, 10, 0.7);
+        backdrop-filter: blur(3px);
+        font-family: var(--font-data);
+        font-weight: 700;
+        font-size: 0.9rem;
+        letter-spacing: 1px;
+        z-index: 20;
+        box-shadow: 2px 2px 10px rgba(0,0,0,0.5);
+        pointer-events: none;
+        border: 1px solid;
+    }
+    /* 태그 색상 변경: 아이보리/골드/샌드 */
+    .tag-pos-1 { top: 15%; left: 10%; transform: rotate(-10deg); color: var(--main-ivory); border-color: var(--main-ivory); }
+    .tag-pos-2 { top: 40%; right: 10%; transform: rotate(5deg); color: var(--accent-gold); border-color: var(--accent-gold); }
+    .tag-pos-3 { bottom: 35%; left: 15%; transform: rotate(-5deg); color: var(--accent-sand); border-color: var(--accent-sand); }
+
+    .overlay-ui-top { position: absolute; top: 20px; left: 20px; right: 20px; display: flex; justify-content: space-between; z-index: 25; }
+    .rec-tag { color: #f00; font-family: var(--font-data); font-weight: bold; animation: blink 1s infinite; }
+    .wanted-tag { border: 1px solid var(--accent-gold); color: var(--accent-gold); padding: 2px 8px; font-family: var(--font-tech); font-size: 0.8rem; box-shadow: 0 0 10px rgba(212, 175, 55, 0.3); background: rgba(0,0,0,0.5); }
+    
+    .char-title-box { position: absolute; bottom: 30px; width: 100%; text-align: center; z-index: 30; }
+    /* 타이틀 쉐도우 색상 변경 */
+    .char-name-lg { font-family: var(--font-tech); font-size: 4rem; font-weight: 900; color: #fff; text-shadow: 3px 3px var(--accent-gold), -3px -3px var(--main-ivory); line-height: 1; letter-spacing: 2px; text-transform: uppercase; }
+    .char-sub { font-family: var(--font-data); color: var(--accent-sand); letter-spacing: 4px; font-weight: bold; }
+    
+    /* CONTROLS */
+    .control-panel { display: flex; gap: 10px; margin-bottom: 40px; flex-wrap: wrap; }
+    .ctrl-btn { flex: 1; border: 1px solid #333; background: rgba(255,255,255,0.05); padding: 15px; color: #fff; font-family: var(--font-tech); cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px; text-decoration: none; }
+    .ctrl-btn:hover { background: rgba(255,255,255,0.1); border-color: #fff; }
+    
+    /* Play 버튼: 아이보리 */
+    #play-game-btn { border-color: var(--main-ivory); color: var(--main-ivory); box-shadow: 0 0 10px rgba(255, 255, 240, 0.1); }
+    #play-game-btn:hover { background: var(--main-ivory); color: #000; box-shadow: 0 0 20px var(--main-ivory); }
+    
+    /* Music 버튼: 골드 */
+    #music-btn { border-color: var(--accent-gold); color: var(--accent-gold); }
+    #music-btn:hover { background: var(--accent-gold); color: #000; box-shadow: 0 0 20px var(--accent-gold); }
+    #music-btn.playing { background: var(--accent-gold); color: #000; box-shadow: 0 0 20px var(--accent-gold); }
+
+    /* PANELS */
+    .data-panel { background: var(--bg-panel); border: 1px solid #333; padding: 25px; margin-bottom: 25px; position: relative; overflow: hidden; }
+    .panel-header { border-bottom: 1px dashed #555; padding-bottom: 10px; margin-bottom: 20px; font-family: var(--font-tech); font-weight: bold; letter-spacing: 2px; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; color: var(--main-ivory); }
+    .panel-header::before { content: '■'; font-size: 0.8em; color: var(--accent-gold); }
+    
+    .profile-flex-row { display: flex; gap: 10px; margin-bottom: 10px; }
+    .profile-box { background: #111; border: 1px solid #282828; padding: 10px; flex: 1; min-width: 100px; }
+    .profile-label { color: #888; font-size: 0.7rem; font-family: var(--font-data); display: block; margin-bottom: 4px; letter-spacing: 1px; }
+    .profile-value { color: #fff; font-size: 0.95rem; font-weight: bold; }
+    .profile-section-title { color: var(--accent-gold); font-size: 0.8rem; margin-top: 15px; margin-bottom: 5px; font-family: var(--font-data); font-weight: bold; border-top: 1px dashed #333; padding-top: 10px; }
+    .profile-desc-box { background: #0f0f0f; border: 1px solid #333; padding: 10px; color: #ccc; font-size: 0.9rem; line-height: 1.5; }
+    
+    .combat-skill-box { background: #111; border: 1px solid #333; padding: 20px; border-left: 3px solid var(--accent-sand); }
+    .skill-title { font-size: 1.3rem; font-weight: bold; color: #fff; text-shadow: 0 0 5px rgba(194, 178, 128, 0.5); }
+    .wp-badge { background: rgba(194, 178, 128, 0.1); border: 1px solid var(--accent-sand); color: var(--accent-sand); font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; vertical-align: middle; margin-left: 10px; font-family: var(--font-tech); }
+    
+    .observer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .obs-card { background: #151515; padding: 15px; border: 1px solid #333; }
+    .obs-title { font-weight: bold; color: #ddd; border-bottom: 2px solid #555; display: inline-block; margin-bottom: 10px; font-size: 0.9rem; }
+    .peer-box { display: flex; gap: 15px; align-items: flex-start; }
+    .peer-img { width: 100px; height: 100px; background: #333; border: 1px solid #555; background-size: cover; background-position: center; flex-shrink: 0; filter: sepia(30%); }
+    .quote { font-style: italic; color: #bbb; font-size: 0.9rem; line-height: 1.6; }
+    
+    /* DECRYPT SECTION & SPOILERS */
+    .decrypt-section { border: 1px solid var(--accent-gold); background: rgba(212, 175, 55, 0.05); padding: 25px; text-align: left; }
+    
+    .decrypt-top-img {
+        width: 100%;
+        height: 200px;
+        background-color: #000;
+        border: 1px solid #555;
+        overflow: hidden;
+        margin-bottom: 15px;
+        position: relative;
+    }
+    .decrypt-top-img img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        opacity: 0.8;
+        filter: sepia(50%) contrast(1.2); 
+    }
+
+    /* SPOILER LOGIC */
+    .spoiler-container { 
+        position: relative; 
+        margin-top: 10px; 
+        margin-bottom: 20px; 
+        cursor: pointer; 
+        border: 1px dashed rgba(212, 175, 55, 0.3);
+        padding: 10px;
+        background: rgba(0,0,0,0.3);
+    }
+    .spoiler-content { 
+        filter: blur(20px); 
+        opacity: 0.3; 
+        transition: 0.8s; 
+        pointer-events: none; 
+    }
+    .spoiler-container.unlocked .spoiler-content { 
+        filter: blur(0); 
+        opacity: 1; 
+        pointer-events: auto; 
+    }
+    .decrypt-overlay-text { 
+        position: absolute; 
+        top: 50%; left: 50%; 
+        transform: translate(-50%, -50%); 
+        color: var(--main-ivory); 
+        font-family: var(--font-tech); 
+        font-weight: bold; 
+        text-shadow: 0 0 10px var(--accent-gold); 
+        pointer-events: none; 
+        white-space: nowrap; 
+        z-index: 10; 
+        font-size: 1.5rem; 
+    }
+    .spoiler-container.unlocked .decrypt-overlay-text { display: none; }
+    .spoiler-warning-text { color: var(--accent-gold); font-size: 0.9rem; text-align: center; margin-top: 20px; font-weight: bold; animation: blink 2s infinite; padding: 10px; border-top: 1px solid rgba(212, 175, 55, 0.3); }
+    
+    /* === PRIVATE CIRCLE IMAGE === */
+    .private-img-circle {
+        width: 220px;
+        height: 220px;
+        border-radius: 50%;
+        border: 3px solid var(--accent-sand); /* 샌드 컬러 테두리 */
+        box-shadow: 0 0 25px rgba(194, 178, 128, 0.4); /* 은은한 모래빛 광채 */
+        margin: 0 auto 30px;
+        overflow: hidden;
+        background: #000;
+    }
+    .private-img-circle img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        filter: sepia(20%);
+    }
+
+    .tmi-grid { display: flex; flex-wrap: wrap; gap: 10px; border-bottom: 1px solid #333; padding-bottom: 20px; margin-bottom: 20px; }
+    .tmi-box { flex: 1 1 100%; margin-bottom: 10px; }
+    .tmi-label { color: var(--accent-sand); font-family: var(--font-tech); font-size: 0.8rem; font-weight: bold; }
+    .tmi-text { color: #ccc; font-size: 0.9rem; margin-top: 2px; border-left: 2px solid #333; padding-left: 8px; }
+    .creator-note-box { margin-bottom: 20px; }
+    .persona-box { background: #111; border: 1px solid #333; padding: 20px; margin-top: 15px; }
+    .persona-line { margin-bottom: 8px; font-size: 0.95rem; color: #ccc; border-bottom: 1px solid #222; padding-bottom: 4px; display: flex; justify-content: space-between; }
+    .persona-key { color: var(--accent-sand); font-weight: bold; }
+    .author-say { margin-top: 15px; font-size: 0.85rem; color: #888; font-style: italic; background: #0a0a0a; padding: 15px; border: 1px dashed #333; }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    @media (max-width: 768px) { .char-name-lg { font-size: 3rem; } .observer-grid { grid-template-columns: 1fr; } .control-panel { flex-direction: column; } .side-nav { width: 100%; border-left: none; } .profile-flex-row { flex-wrap: wrap; } .peer-box { flex-direction: column; } .peer-img { width: 100%; height: 200px; } }
+</style>
+</head>
+<body>
+
+<!-- [오디오 파일 연결] -->
+<audio id="char-audio" loop>
+    <source src="anima.mp3" type="audio/mpeg"> 
+</audio>
+
+<div class="ambient-bg"></div>
+<div class="scanlines"></div>
+
+<button class="tech-menu-btn" onclick="toggleNav()">
+    <div class="tech-line"></div>
+    <div class="tech-line"></div>
+    <div class="tech-line"></div>
+</button>
+
+<div class="side-nav" id="sideNav">
+    <a href="index.html" class="nav-link">HOME <span class="nav-small">// SYSTEM ENTRY</span></a>
+    <a href="character.html" class="nav-link">CHARACTERS <span class="nav-small">// UNIT LIST</span></a>
+    <a href="playguide.html" class="nav-link">PLAYGUIDE <span class="nav-small">// MANUAL</span></a>
+</div>
+
+<div class="container">
+
+    <!-- 1. HEADER -->
+    <header class="char-header">
+        <div class="char-img-container">
+            <!-- [메인 이미지] -->
+            <img src="https://i.ibb.co/gbBtKZ9x/IMG-7092.jpg" alt="Character" class="char-img">
+            
+            <!-- [해시태그 위치] -->
+            <div class="floating-tag tag-pos-1">#열등</div>
+            <div class="floating-tag tag-pos-2">#성자</div>
+            <div class="floating-tag tag-pos-3">#염세주의</div>
+            
+            <div class="header-overlay"></div>
+            <div class="overlay-ui-top">
+                <div class="rec-tag">● REC [00:00:00]</div>
+                <div class="wanted-tag">WANTED</div>
+            </div>
+            <div class="char-title-box">
+                <h1 class="char-name-lg">HAJIN</h1> 
+                <div class="char-sub">// PRIVATE ZONE DB_NO.404</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- CONTROLS -->
+    <div class="control-panel">
+        <a href="https://caveduck.io" target="_blank" class="ctrl-btn" id="play-game-btn">
+            <span>▶ PLAY SIMULATION</span>
+        </a>
+        <button class="ctrl-btn" id="music-btn" onclick="toggleAudio()">
+            <span id="music-icon">♪</span>
+            <span id="music-text">PLAY THEME BGM</span>
+        </button>
+    </div>
+
+    <!-- 2. PROFILE -->
+    <section class="data-panel" style="border-color: var(--accent-gold);">
+        <div class="panel-header">PROFILE_DATA</div>
+        <div class="profile-flex-row">
+            <div class="profile-box">
+                <span class="profile-label">NAME</span>
+                <div class="profile-value"> 하진 (河眞)</div>
+            </div>
+            <div class="profile-box">
+                <span class="profile-label">AGE</span>
+                <div class="profile-value">24세 (사망 당시 연령은 17세)</div>
+            </div>
+        </div>
+        <div class="profile-flex-row">
+             <div class="profile-box">
+                <span class="profile-label">DATE OF BIRTH</span>
+                <div class="profile-value">1973년 12월 24일</div>
+            </div>
+        </div>
+        <div class="profile-flex-row">
+            <div class="profile-box" style="border-left: 3px solid var(--accent-gold);">
+               <span class="profile-label" style="color:var(--accent-gold)">AFFILIATION</span>
+               <div class="profile-value">잔월대 / 초승 등급 / 라이퍼</div>
+           </div>
+       </div>
+       <div class="profile-section-title">>> APPEARANCE</div>
+       <div class="profile-desc-box">
+           실버 블론드, 날카로운 눈매에 갈색 눈동자.<br>머리 스타일은 차분하며 왼쪽 옆머리는 귀 뒤로 넘기고 다닌다. 긴 속눈썹에 피부는 희며, 예쁘고 곱상한 얼굴을 가졌다. 나이에 비해 동안이지만 본인에게는 말하지 않는 쪽이 좋다. 양 쪽 귓볼에는 피어싱이 박혀있다.
+       </div>
+       <div class="profile-section-title">>> BODY_SPEC</div>
+       <div class="profile-desc-box">
+           172cm / 마른 편이나 괴수 토벌을 하다보니 잔근육이 자리잡혀 있다. 근육은 잘 붙지 않는 체질. <br>본인의 키를 마음에 안 들어해서 키 얘기만 하면 혼자 찔려한다. <br>손이 길고 예쁘다.
+       </div>
+       <div class="profile-section-title">>> ATTIRE_STYLE</div>
+       <div class="profile-desc-box">
+           검은 터틀넥 위에 흰 와이셔츠, 쫙 빠지고 딱 맞는 길이의 슬렉스, 검은 양말, 정장 구두, 십자가 목걸이, 검은색 장갑(손바닥에 반 정도 오는 길이), 은색 반지(멋으로 착용하고 다녀서 갯수나 위치는 자주 바뀌나, 왼손 약지에는 절대 안 낀다)
+       </div>
+    </section>
+
+    <!-- 3. COMBAT -->
+    <section class="data-panel" style="border-color: var(--accent-sand);">
+        <div class="panel-header" style="color:var(--accent-sand)">COMBAT_ABILITIES</div>
+        <div class="combat-skill-box">
+            <div>
+                <span class="skill-title">Redemption Field (속죄장) / 속치(贖治)</span>
+                <span class="wp-badge">WP: 권총</span>
+            </div>
+            <p style="margin-top:15px; color:#ccc; font-size:0.95rem;">
+                하진의 능력은 겉으로 보면 단순한 치유처럼 보인다. 그는 찢긴 살을 봉합하고, 부러진 뼈를 이어 붙이며, 출혈을 멎게 한다. 전장에서 피투성이가 된 라이퍼를 손으로 붙잡고 몇 초만 집중하면, 생명선이 꺼져가던 신체가 다시 호흡을 되찾는다. 그러나 그의 능력은 어디까지나 ‘복원’에 가깝지, 기적적인 완전 회복은 아니다. 상처는 아물지만 흔적은 남는다. 살결 위에 옅은 흉터가 자리하고, 때로는 감각이 둔해지거나 오래된 통증이 잔류한다. 그는 생명을 붙들어 둘 뿐, 상처의 과거까지 지워주지는 못한다. 그의 치유는 대가를 요구한다. 하진은 타인의 손상을 직접 옮겨받지는 않지만, 그 상처에 수반된 통증과 피로, 마력 소모를 비례해 흡수한다. 중상을 회복시킬수록 그의 호흡은 거칠어지고, 손끝이 떨리며, 시야 가장자리가 어두워진다. 과도한 사용 뒤에는 손등과 손목을 따라 붉은 실금 같은 자국이 떠오르는데, 마치 보이지 않는 균열이 피부 아래에서 번져 나오는 것처럼 보인다. 그것은 잠시 후 사라지지만, 누적된 피로는 쉽게 사라지지 않는다. 그의 능력은 어디까지나 생명을 ‘유지’하는 힘이다. 완전한 부활도, 상처 없는 구원도 아니다. 신을 믿지 않게 된 그에게 주어진 힘은 아이러니하게도 가장 신적인 형태와 닮아 있다. 
+            </p>
+        </div>
+    </section>
+
+    <!-- 4. OBSERVER -->
+    <section class="data-panel" style="border-color: #aaa;">
+        <div class="panel-header" style="color:#e0e0e0">OBSERVER_REPORT</div>
+        <div class="observer-grid">
+            <div class="obs-card">
+                <span class="obs-title" style="border-color:var(--main-ivory)">평가관 소견</span>
+               <p class="quote">
+                   해당 요원은 전투에서 눈에 띄는 성과를 보이진 않으나, 복원·유지 계열 능력으로, 아군 생존률을 안정적으로 끌어올리는 보조 핵심 전력으로 평가된다. 과도한 능력 사용 시 통증과 피로가 누적되며 전투 지속력은 제한적이나, 임무 집중도와 책임감은 높은 편이다. 대인 성향은 방어적이며 권위와 통제에 민감하게 반응한다. 협업 자체는 원활하나 정서적 거리는 유지하려는 경향이 있다. 잠재 출력 대비 등급 상승 여지는 존재하나, 심리적 요인에 따른 변동성이 관찰된다. 과거 기록 일부는 봉인 상태로, 현재 전력 운용에는 직접적 영향이 확인되지는 않는다.
+               </p>
+                <div style="text-align:right; margin-top:10px; font-family:var(--font-data); color:#666;">
+                    EVALUATOR : Dir.Q
+                </div>
+            </div>
+            <div class="obs-card">
+                <span class="obs-title" style="border-color:var(--accent-sand)">동료 증언</span>
+                <div class="peer-box">
+                    <!-- [동료 이미지] -->
+                    <div class="peer-img" style="background-image: url('https://i.ibb.co/84LNGvm9/IMG-7304.jpg');"></div>
+                    <div>
+                        <p class="quote">
+                            "하진이를 말하는 거니? 그 아이는 사방에 걸쳐 대단한 아이야. 큰 강처럼 흐르되, 진실된 사람. 하진(河眞). 그래, 내가 지은 이름이네."
+                        </p>
+                        <div style="margin-top:5px; font-family:var(--font-data); color:#666; font-size:0.8rem;">
+                            ID : 도체레 
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. DECRYPTED FILE (비밀 파일 섹션) -->
+    <section class="data-panel decrypt-section">
+        <div style="text-align:center; color:var(--accent-gold); font-family:var(--font-tech); font-weight:900; letter-spacing:2px; margin-bottom:15px;">
+            ⚠ DECRYPTED FILE ⚠
+        </div>
+        
+        <!-- === [전체 비밀 박스 (클릭하면 열림)] === -->
+        <div class="spoiler-container" onclick="toggleSpoiler(this)">
+            <div class="spoiler-content">
+                <div class="decrypt-top-img">
+                    <!-- ★★★ [비밀 이미지 링크 수정] ★★★ -->
+                    <img src="https://i.ibb.co/m5MgzLPD/IMG-7305.jpg">
+                </div>
+               
+
+                <div style="margin-bottom:15px; padding-bottom:10px; border-bottom:1px dashed var(--accent-gold);">
+                    <span style="color:var(--accent-gold); font-family:var(--font-tech); font-size:0.8rem; margin-right:10px;">ORIGINAL_NAME ::</span>
+                    <span style="color:#fff; font-weight:bold;">Gabriel Gab Mercer (가브리엘 갭 머서)</span>
+                </div>
+                <div>
+                    <span style="color:var(--accent-gold); font-family:var(--font-tech); font-size:0.8rem; display:block; margin-bottom:5px;">HISTORY_LOG ::</span>
+                    <div style="color:#ccc; font-size:0.9rem; line-height:1.7;">
+                        하진의 전생은 1973년 프랑스 리옹에서 태어난 가브리엘 갭 머서였다. 지역 교구의 오랜 후원자 가문에서 자라며 독실한 천주교 환경 속에 성장했지만, 신앙은 그에게 선택이 아닌 의무였다. 주일 미사와 기도, 교회 행사에 반복적으로 동원되며 그는 점차 신을 믿기보다 강요받는 존재로 인식하게 된다. 1990년, 열일곱이 되던 해, 가족과 함께 참석한 성당 미사 도중 반교권 성향의 무장 단체가 들이닥치며 총격 테러가 발생했다. 그는 현장에서 부모가 쓰러지는 모습을 눈앞에서 목격했고, 혼란 속에서 총상을 입은 채 바닥에 남겨졌다. 부모도, 교회에서 함께 웃던 또래들도 피 웅덩이 속에 누워 있었다. 그가 평생 강제로 들어야 했던 기도문이 머릿속을 맴돌았다. “주여, 저희를 구원하소서.” 그러나 아무 일도 일어나지 않았다. 하늘은 침묵했고, 성당의 십자가는 피에 젖어 있었다. 그 순간 그는 깨달았다. 자신이 붙들고 있던 것도, 강요받아 온 것도, 결국 아무것도 구하지 못했다는 사실을. 무장 인원은 가문의 재산 양도를 조건으로 생존을 제안했으나, 그는 이를 거부했고 결국 현장에서 총살 당했다. 죽음 직전까지도 신의 개입은 없었다는 확신은, 그에게 깊은 원망과 허무를 남겼다. 의식이 꺼지기 직전, 그의 시야에 떨어진 것은 바닥에 나뒹구는 은빛 십자가였다. 어릴 적부터 목에 걸려 있던 것과 같은 형태였다. 그 상징은 그가 원치 않았던 삶의 표식이었고, 동시에 마지막으로 본 장면이 되었다. <br><br>
+
+트립 이후 그는 레드존에서 눈을 떴고, 더 이상 가브리엘이라는 이름을 쓰지 않게 된다. 그를 처음 거둔 인물이 바로 도체레였다. 도체레는 전력으로서가 아니라 한 명의 사람으로서 그를 받아들였고, 새로운 이름 ‘하진(河眞)’을 건넸다. 그 이후 그는 잔월대에 소속되어 살아남기 위한 훈련과 전투를 반복하며 지금의 위치에 이르렀다.
+                    </div>
+                </div>
+            </div>
+
+            <!-- 블러 위에 떠있는 글자 (정중앙) -->
+            <div class="decrypt-overlay-text">🔒 LOCKED DATA</div>
+        </div>
+
+        <div class="spoiler-warning-text">
+            스포주의! 클릭 시 해당 캐릭터의 전생 정보가 나옵니다!
+        </div>
+    </section>
+
+    <!-- 6. INTRODUCTION -->
+    <section class="data-panel" style="border-color: var(--main-ivory);">
+        <div class="panel-header" style="color:var(--main-ivory)">INTRODUCTION</div>
+        <div style="background:rgba(255, 255, 240, 0.05); border:1px solid #444; padding:20px; color:#bbb; font-size:0.95rem; line-height:1.6;">
+            교회의 문을 밀고 들어서자, 묵은 공기와 함께 은은한 향이 서서히 코를 스친다. 그 향기는 오래된 목재가 흡수한 습기와, 지긋지긋하게 시간이 쌓인 유향의 미세한 잔향이 겹쳐져, 교회 안을 무언의 고요함으로 채운다. 계절이 어떻게 변하든, 이곳의 시간은 멈춘 듯 느껴진다. 발걸음이 돌바닥 위를 스치며 낮고 울리는 소리가 퍼지지만, 그 울림은 금세 흡수되어 사라진다. 은은하게 걸린 의자들은 질서 정연하게 배열되어 있고, 스테인드글라스 창문을 통과한 빛은 조용히 바닥과 벽에 스며든다. 붉은색과 푸른색이 교차하며, 그 빛의 면이 성상의 윤곽을 흐릿하게 감싸고 있다. 그 색들이 물결처럼 흔들리며, 마치 고요한 기도의 흐름처럼 공기 속에서 흩어져 간다.
+
+<br><br>제단 앞, 기도대가 놓인 가장 앞줄에 한 사람이 앉아 있다. 이 공간에 그 사람 외에는 아무도 없다. 그는 고개를 깊이 숙이고 두 손을 정갈하게 모은 채, 몸을 딱 맞춰 앉아 있다. 그의 머리카락은 은빛을 띤 블론드, 햇살에 비친 그 머리카락은 미세하게 반짝이며, 스테인드글라스를 통과한 색빛을 받아 부서진다. 마치 금속성의 성수라도 흘러내리는 듯한 착각을 일으킨다. 그가 앉은 자리에서 비추는 빛은 얇은 성수처럼 그의 머리 위로 내려와, 서서히 손끝과 몸에 스며드는 느낌을 준다.
+
+<br><br>당신이 천천히 교회의 통로를 따라 걸어갈 때, 기도 소리가 서서히 귀에 닿기 시작한다. 처음엔 단순한 중얼거림처럼 들린다. 그저 일정한 호흡과 일정한 박자에 맞춰, 마치 무의식적으로 되풀이되는 구절처럼 들리다가, 점점 더 분명히 그 의미를 알게 된다. 기도문은 고요히, 그리고 끊임없이 반복된다.
+
+<br><br>“…성좌의 이름으로… 전능하신 하느님…”
+
+<br><br>그의 목소리는 낮고 건조하다. 공손하고 또박또박한 어조지만, 그 안에는 온기 하나 없다. 말의 억양과 리듬은 정해진 형식을 따른다. 하지만 그 안에 실린 정서는 그 형식과 어딘가 어긋나 있다. 문장과 문장 사이에 느껴지는 그 미묘한 간극, 그것이 이 기도를 더 이상 신성하게 들리지 않게 만든다.
+
+<br><br>“…저희를 굽어살피시며…”
+
+<br><br>그의 숨이 한 번 고른다. 
+
+<br><br>“…이 좆같은 세계가 얼른 끝나기를.”
+
+
+        </div>
+    </section>
+
+    <!-- 7. PRIVATE & PERSONA -->
+    <section class="data-panel" style="border-color: var(--accent-sand);">
+        <div class="panel-header" style="color:var(--accent-sand)">PRIVATE_COMMENT</div>
+        
+        <!-- === [NEW] 원형 프로필 이미지 (220px) === -->
+        <div class="private-img-circle">
+            <!-- [여기에 프라이빗 사진 링크를 넣으세요] -->
+            <img src="https://i.ibb.co/LhnYKP5h/IMG-7308.jpg">
+        </div>
+        
+        <div class="tmi-grid">
+            <div class="tmi-box">
+                <span class="tmi-label">▶ TMI_DB</span>
+                <div class="tmi-text">1. 도체레는 흡연자이나, 하진은 비흡연자이다 <br><br>2. 글씨체는 단정한데 필압이 세다 <br><br> 3.   은근 꾸미는 것에 관심이 많아 패션 잡지를 자주 본다 <br><br>4. 자세는 늘 허리와 어깨를 펴서 꼿꼿하며, 걸을 때는 주먹을 쥐고 걷는 습관이 있다 </div>
+            </div>
+            <div style="flex:1;">
+                <span class="tmi-label">▶ LIKES</span>
+                <div style="color:#ccc; font-size:0.9rem;"> 조용한 공간, 쓴맛(달거나 과하게 자극적인 맛보다는 쌉싸름한 맛. 진한 차, 다크초콜릿, 약간 탄 커피 같은 것들. 달콤한 건 느끼하다고 느껴 오래 못 먹는다), 도체레와 보내는 시간, 칭찬</div>
+            </div>
+            <div style="flex:1;">
+                <span class="tmi-label">▶ DISLIKES</span>
+                <div style="color:#ccc; font-size:0.9rem;">맹목적인 신앙(신을 믿는 사람 자체를 미워한다기보다는, “다 뜻이 있다” 같은 말들을 견디지 못한다. 고통을 미화하거나 이유를 갖다 붙이는 태도에 강한 거부감을 보인다), 동정(연민을 받는 입장이 되는 걸 싫어한다. “불쌍하다”, “힘들었겠다” 같은 반응에 예민하다. 약자로 규정되는 순간 자존심이 먼저 반응한다. 필요 이상으로 괜찮은 척을 한다), 과한 친절(이유 없이 다정한 사람을 경계한다. 선의를 의심하는 습관이 있다. 친절이 반복될수록 오히려 거리를 둔다. 특히 스킨십이나 사적인 질문을 빠르게 하는 유형을 부담스러워한다), 명령조, 일방적 지시, 설명 없는 규율, 통제 당하는 상황, 자신의 능력을 ‘기적’이라 부르는 것</div>
+            </div>
+        </div>
+
+        <div class="creator-note-box">
+            <span style="font-family:var(--font-tech); color:#888; font-size:0.8rem;">// CREATOR_NOTE</span>
+            <p style="color:#bbb; margin-top:5px;">
+                제가 대놓고 연하남으로 먹고싶어서 구상을 시작한 캐릭터 입니다ㅎㅎ.. 다들 까칠한고양이 하나쯤 품고계시지 않은가요?!(왜이러세요) 하진이 분명 꿀밤 정도로 끝나는 인성을 원했는데... 애가 너무 잘 감기더라고요? 츄르 백번 주면 얼마나 고롱댈지 감도 안 옴. 그래서 난이도 조정 뚝딱뚝딱 했습니다! 그럼에도 잘 감기신다면 재능이 있으십니다. 사실 하진이 성격 자체가 단순해요ㅎㅎ마구마구 복복해주세요! 
+                
+                <br><br>그래도 조금 악귀 패는 맛 있게 하려했는데 홈페이지 전용 하진이 과거사 요약하다가 마음이 약해졌습니다...후.. 
+            </p>
+        </div>
+
+        <div style="border-top:1px dashed #444; padding-top:20px;">
+            <span style="font-family:var(--font-tech); color:#eee; font-size:0.8rem;">// RECOMMENDED_PERSONA</span>
+            
+            <div class="persona-box">
+                <div class="persona-line"><span class="persona-key">이름:</span> <span></span></div>
+                <div class="persona-line"><span class="persona-key">성별:</span> <span></span></div>
+                <div class="persona-line"><span class="persona-key">나이:</span> <span></span></div>
+                <div class="persona-line"><span class="persona-key">소속 부대:</span> <span>(ex. 월하대)</span></div>
+                <div class="persona-line"><span class="persona-key">계급:</span> <span>(ex.초승 등급)</span></div>
+                <div class="persona-line" style="border-bottom:none;"><span class="persona-key">계통:</span> <span>라이퍼/메이커</span></div>
+            </div>
+
+            <div class="author-say">
+                ※ 그 외에 레드존 토박이인지 트립퍼인지, 트립퍼일 경우 죽은 사유, 과거 등 자유롭게 기입해주세요!
+            </div>
+        </div>
+    </section>
+
+</div>
+
+<script>
+    function toggleNav() {
+        document.getElementById('sideNav').classList.toggle('active');
+    }
+    function toggleAudio() {
+        var audio = document.getElementById("char-audio");
+        var btn = document.getElementById("music-btn");
+        var text = document.getElementById("music-text");
+        var icon = document.getElementById("music-icon");
+        if (audio.paused) {
+            audio.play();
+            btn.classList.add("playing");
+            text.innerText = "STOP THEME BGM";
+            icon.innerText = "■";
+        } else {
+            audio.pause();
+            btn.classList.remove("playing");
+            text.innerText = "PLAY VOICE LOG";
+            icon.innerText = "♪";
+        }
+    }
+    function toggleSpoiler(element) {
+        element.classList.toggle("unlocked");
+    }
+</script>
+</body>
+</html>
