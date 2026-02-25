@@ -586,6 +586,41 @@
             </div>
         </section>
 
+        <!-- 03-1. Prisoner System (수감자 제도 추가 부분) -->
+        <div class="sub-code" style="background:#222; display:inline-block; padding:5px 10px; margin:50px 0 20px; color:#fff; border-left:3px solid var(--neon-pink);">
+            >> LAW_ENFORCEMENT_PROTOCOL
+        </div>
+
+        <article class="card" style="--accent-color: var(--neon-pink); margin-bottom: 40px;">
+            <div style="border-bottom: 1px solid #333; padding-bottom: 15px; margin-bottom: 25px; display: flex; align-items: center; gap: 15px;">
+                <div style="width: 12px; height: 12px; background: var(--neon-pink); box-shadow: 0 0 10px var(--neon-pink);"></div>
+                <h3 style="margin:0; letter-spacing: 2px;">수감자(收監者) 제도</h3>
+            </div>
+            
+            <p style="font-size: 1.05rem; line-height: 1.8; color: #ddd; margin-bottom: 30px;">
+                발테리온에서는 라이퍼와 메이커를 통칭하여 <span style="color: var(--neon-pink); font-weight: bold; border-bottom: 1px solid var(--neon-pink);">‘수감자’</span>라 부른다. 이는 단순한 전투 인력을 뜻하는 명칭이 아니라, 국가 관리 대상이자 통제 전력이라는 법적 지위를 의미한다. 레드존 상위 행정기관은 블루월드에서 트립해 온 이들 가운데, 전생에서 중대한 범죄를 저질렀거나 사회적 위험 인물로 분류될 소지가 있는 자들을 우선적으로 ‘수감자’ 판정한다. 
+                <br><br>
+                게이트에서 이러한 판정이 내려진 인물은 발테리온으로 이송되어 전투 전력으로 편입된다. 공식 명분은 단순하다. <span style="color: #fff; font-style: italic;">“사회에 위해가 될 가능성이 있는 자에게, 사회를 위해 싸울 기회를 부여한다.”</span> 즉, 처벌과 속죄를 동시에 수행하는 구조다. 이들은 자유 시민과는 다른 법적 지위를 가지며, 거주 구역·이동·배속·임무 수행이 모두 관리 대상이 된다.
+            </p>
+
+            <!-- 판정 기준과 논란 하단 박스 -->
+            <div style="background: rgba(255, 0, 85, 0.05); border: 1px solid rgba(255, 0, 204, 0.3); padding: 25px; position: relative; border-radius: 2px;">
+                <div style="position: absolute; top: -1px; left: -1px; width: 30px; height: 1px; background: var(--neon-pink);"></div>
+                <div style="position: absolute; top: -1px; left: -1px; width: 1px; height: 30px; background: var(--neon-pink);"></div>
+                
+                <h4 style="font-family: var(--font-tech); color: var(--neon-pink); margin-bottom: 15px; font-size: 1.1rem; text-shadow: 0 0 5px var(--neon-pink);">
+                    ● 판정 기준과 논란 (JUDGMENT_CRITERIA)
+                </h4>
+                <p style="font-size: 0.95rem; color: #bbb; margin: 0; text-align: justify;">
+                    문제는 그 판정 기준이 절대적으로 명확하지 않다는 점이다. 레드존 행정청은 전생의 범죄 기록, 사망 당시의 정황, 심리 분석 자료 등을 종합해 위험도를 산정한다고 설명한다. 그러나 블루월드의 기록은 완전하지 않으며, 시대·국가·문화에 따라 범죄의 기준 또한 달라진다. 그 결과, 단순한 과실 범죄자나 정치적 희생자, 혹은 정황상 오해의 여지가 있는 인물까지 수감자로 판정되는 사례가 발생했다는 비판이 존재한다.
+                </p>
+                
+                <div style="margin-top: 15px; font-family: var(--font-data); font-size: 0.8rem; color: #555; text-align: right;">
+                    // AUTH_LEVEL: 04_ADMIN_ONLY
+                </div>
+            </div>
+        </article>
+
         <!-- 04. Rank System -->
         <section>
             <div class="section-header" style="--accent-color: var(--neon-purple);">
@@ -743,3 +778,4 @@
     </script>
 </body>
 </html>
+
